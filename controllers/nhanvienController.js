@@ -1,54 +1,216 @@
-const NhanVien = require('../models/nhanvienModel');
+const NhanVienModel = require('../models/nhanvienModel');
 
-exports.create = async (req, res) => {
-    try {
-        const id = await NhanVien.create(req.body); // expects ma_chuc_vu, ma_phong_ban, ten_nhan_vien, email?, sdt?
-        res.status(201).json({ success: true, id });
-    } catch (e) {
-        if (e.code === 'ER_NO_REFERENCED_ROW_2' || e.code === 'ER_NO_REFERENCED_ROW')
-            return res.status(400).json({ message: 'Tham chiếu không hợp lệ (chức vụ/phòng ban)' });
-        console.error('POST /nhan-vien', e);
-        res.status(500).json({ message: 'Server error', detail: e.message });
+class NhanVienController {
+    // Lấy tất cả nhân viên
+    async getAll(req, res) {
+        try {
+            const nhanViens = await NhanVienModel.getAll();
+            res.json({
+                success: true,
+                data: nhanViens
+            });
+        } catch (error) {
+            console.error('Error getting employees:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy danh sách nhân viên',
+                error: error.message
+            });
+        }
     }
-};
 
-exports.getAll = async (_req, res) => {
-    try {
-        const rows = await NhanVien.getAll();
-        res.json(rows);
-    } catch (e) {
-        console.error('GET /nhan-vien', e);
-        res.status(500).json({ message: 'Server error', detail: e.message });
-    }
-};
+    // Lấy nhân viên theo ID
+    async getById(req, res) {
+        try {
+            const { id } = req.params;
+            const nhanVien = await NhanVienModel.getById(id);
 
-exports.getById = async (req, res) => {
-    try {
-        const row = await NhanVien.getById(req.params.id);
-        if (!row) return res.status(404).json({ message: 'Nhân viên không tồn tại' });
-        res.json(row);
-    } catch (e) {
-        console.error('GET /nhan-vien/:id', e);
-        res.status(500).json({ message: 'Server error', detail: e.message });
-    }
-};
+            if (!nhanVien) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy nhân viên'
+                });
+            }
 
-exports.update = async (req, res) => {
-    try {
-        await NhanVien.update(req.params.id, req.body);
-        res.json({ success: true });
-    } catch (e) {
-        console.error('PUT /nhan-vien/:id', e);
-        res.status(500).json({ message: 'Server error', detail: e.message });
+            res.json({
+                success: true,
+                data: nhanVien
+            });
+        } catch (error) {
+            console.error('Error getting employee:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy thông tin nhân viên',
+                error: error.message
+            });
+        }
     }
-};
 
-exports.delete = async (req, res) => {
-    try {
-        await NhanVien.delete(req.params.id);
-        res.json({ success: true });
-    } catch (e) {
-        console.error('DELETE /nhan-vien/:id', e);
-        res.status(500).json({ message: 'Server error', detail: e.message });
+    // Thêm nhân viên mới
+    async create(req, res) {
+        try {
+            const { ma_chuc_vu, ma_phong_ban, ten_nhan_vien, email, sdt } = req.body;
+
+            // Validate
+            if (!ten_nhan_vien || !email) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Tên và email là bắt buộc'
+                });
+            }
+
+            // Kiểm tra email trùng
+            const emailExists = await NhanVienModel.checkEmailExists(email);
+            if (emailExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email đã tồn tại'
+                });
+            }
+
+            const newId = await NhanVienModel.create({
+                ma_chuc_vu,
+                ma_phong_ban,
+                ten_nhan_vien,
+                email,
+                sdt
+            });
+
+            const newNhanVien = await NhanVienModel.getById(newId);
+
+            res.status(201).json({
+                success: true,
+                message: 'Thêm nhân viên thành công',
+                data: newNhanVien
+            });
+        } catch (error) {
+            console.error('Error creating employee:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi thêm nhân viên',
+                error: error.message
+            });
+        }
     }
-};
+
+    // Cập nhật nhân viên
+    async update(req, res) {
+        try {
+            const { id } = req.params;
+            const { ma_chuc_vu, ma_phong_ban, ten_nhan_vien, email, sdt } = req.body;
+
+            // Validate
+            if (!ten_nhan_vien || !email) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Tên và email là bắt buộc'
+                });
+            }
+
+            // Kiểm tra email trùng (trừ chính nó)
+            const emailExists = await NhanVienModel.checkEmailExists(email, id);
+            if (emailExists) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email đã tồn tại'
+                });
+            }
+
+            const affectedRows = await NhanVienModel.update(id, {
+                ma_chuc_vu,
+                ma_phong_ban,
+                ten_nhan_vien,
+                email,
+                sdt
+            });
+
+            if (affectedRows === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy nhân viên'
+                });
+            }
+
+            const updatedNhanVien = await NhanVienModel.getById(id);
+
+            res.json({
+                success: true,
+                message: 'Cập nhật nhân viên thành công',
+                data: updatedNhanVien
+            });
+        } catch (error) {
+            console.error('Error updating employee:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi cập nhật nhân viên',
+                error: error.message
+            });
+        }
+    }
+
+    // Xóa nhân viên
+    async delete(req, res) {
+        try {
+            const { id } = req.params;
+
+            const affectedRows = await NhanVienModel.delete(id);
+
+            if (affectedRows === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Không tìm thấy nhân viên'
+                });
+            }
+
+            res.json({
+                success: true,
+                message: 'Xóa nhân viên thành công'
+            });
+        } catch (error) {
+            console.error('Error deleting employee:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi xóa nhân viên',
+                error: error.message
+            });
+        }
+    }
+
+    // Lấy danh sách chức vụ
+    async getChucVu(req, res) {
+        try {
+            const chucVus = await NhanVienModel.getChucVu();
+            res.json({
+                success: true,
+                data: chucVus
+            });
+        } catch (error) {
+            console.error('Error getting positions:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy danh sách chức vụ',
+                error: error.message
+            });
+        }
+    }
+
+    // Lấy danh sách phòng ban
+    async getPhongBan(req, res) {
+        try {
+            const phongBans = await NhanVienModel.getPhongBan();
+            res.json({
+                success: true,
+                data: phongBans
+            });
+        } catch (error) {
+            console.error('Error getting departments:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Lỗi khi lấy danh sách phòng ban',
+                error: error.message
+            });
+        }
+    }
+}
+
+module.exports = new NhanVienController();

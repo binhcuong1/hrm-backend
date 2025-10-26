@@ -1,19 +1,16 @@
-const r = require('express').Router();
-const NhanVienCtrl = require('../controllers/nhanvienController');
+const express = require('express');
+const router = express.Router();
+const nhanVienController = require('../controllers/nhanvienController');
 
-// GET /api/nhan-vien
-r.get('/', NhanVienCtrl.getAll);
+// Routes cho nhân viên
+router.get('/', nhanVienController.getAll);
+router.get('/:id', nhanVienController.getById);
+router.post('/', nhanVienController.create);
+router.put('/:id', nhanVienController.update);
+router.delete('/:id', nhanVienController.delete);
 
-// POST /api/nhan-vien
-r.post('/', NhanVienCtrl.create);
+// Routes cho danh mục
+router.get('/danh-muc/chuc-vu', nhanVienController.getChucVu);
+router.get('/danh-muc/phong-ban', nhanVienController.getPhongBan);
 
-// GET /api/nhan-vien/:id
-r.get('/:id', NhanVienCtrl.getById);
-
-// PUT /api/nhan-vien/:id
-r.put('/:id', NhanVienCtrl.update);
-
-// DELETE /api/nhan-vien/:id
-r.delete('/:id', NhanVienCtrl.delete);
-
-module.exports = r;
+module.exports = router;

@@ -7,5 +7,7 @@ router.use('/nhan-vien', require('./nhanvienRoutes'));
 router.use('/auth', require('./authRoutes'));
 router.use('/calamviec', require('./calamviecRoutes'));
 router.use('/phongban', require('./phongbanRoutes'));
+router.use('/thuongphat', require('./thuongPhatRoutes'));
+router.use("/bangluong", require('./bangluongRoutes'));
 
 module.exports = router;
