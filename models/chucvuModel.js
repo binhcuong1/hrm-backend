@@ -1,23 +1,27 @@
-const db = require('../config/db');
-const table = 'chuc_vu';
+const pool = require('../config/db');
 
-module.exports = {
-    async create(data) {
-        const [r] = await db.query(`INSERT INTO ${table} SET ?`, [data]);
-        return r.insertId;
-    },
-    async getAll() {
-        const [rows] = await db.query(`SELECT * FROM ${table} ORDER BY ma_chuc_vu DESC`);
-        return rows;
-    },
-    async getById(id) {
-        const [rows] = await db.query(`SELECT * FROM ${table} WHERE ma_chuc_vu=? LIMIT 1`, [id]);
-        return rows[0] || null;
-    },
-    async update(id, data) {
-        await db.query(`UPDATE ${table} SET ? WHERE ma_chuc_vu=?`, [data, id]);
-    },
-    async delete(id) {
-        await db.query(`DELETE FROM ${table} WHERE ma_chuc_vu=?`, [id]);
-    }
+exports.getAll = async () => {
+  const [rows] = await pool.query('SELECT * FROM chucvu');
+  return rows;
+};
+
+exports.create = async (tenChucVu) => {
+  const [result] = await pool.query(
+    'INSERT INTO chucvu (tenChucVu) VALUES (?)',
+    [tenChucVu]
+  );
+  return result.insertId;
+};
+
+exports.update = async (id, tenChucVu) => {
+  const [result] = await pool.query(
+    'UPDATE chucvu SET tenChucVu=? WHERE id=?',
+    [tenChucVu, id]
+  );
+  return result.affectedRows;
+};
+
+exports.delete = async (id) => {
+  const [result] = await pool.query('DELETE FROM chucvu WHERE id=?', [id]);
+  return result.affectedRows;
 };

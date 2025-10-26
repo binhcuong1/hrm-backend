@@ -1,216 +1,63 @@
-const NhanVienModel = require('../models/nhanVienModel');
+const NhanVien = require('../models/nhanvienModel');
+const ChucVu = require('../models/chucvuModel');
+const PhongBan = require('../models/phongbanModel');
 
-class NhanVienController {
-  // Lấy tất cả nhân viên
-  async getAll(req, res) {
-    try {
-      const nhanViens = await NhanVienModel.getAll();
-      res.json({
-        success: true,
-        data: nhanViens
-      });
-    } catch (error) {
-      console.error('Error getting employees:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Lỗi khi lấy danh sách nhân viên',
-        error: error.message
-      });
-    }
+exports.getAll = async (req, res) => {
+  try {
+    const list = await NhanVien.getAll();
+    res.json(list);
+  } catch {
+    res.status(500).json({ message: 'Lỗi lấy danh sách nhân viên' });
   }
+};
 
-  // Lấy nhân viên theo ID
-  async getById(req, res) {
-    try {
-      const { id } = req.params;
-      const nhanVien = await NhanVienModel.getById(id);
-      
-      if (!nhanVien) {
-        return res.status(404).json({
-          success: false,
-          message: 'Không tìm thấy nhân viên'
-        });
-      }
-
-      res.json({
-        success: true,
-        data: nhanVien
-      });
-    } catch (error) {
-      console.error('Error getting employee:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Lỗi khi lấy thông tin nhân viên',
-        error: error.message
-      });
-    }
+exports.getById = async (req, res) => {
+  try {
+    const nv = await NhanVien.getById(req.params.id);
+    if (!nv) return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
+    res.json(nv);
+  } catch {
+    res.status(500).json({ message: 'Lỗi lấy nhân viên' });
   }
+};
 
-  // Thêm nhân viên mới
-  async create(req, res) {
-    try {
-      const { ma_chuc_vu, ma_phong_ban, ten_nhan_vien, email, sdt } = req.body;
-
-      // Validate
-      if (!ten_nhan_vien || !email) {
-        return res.status(400).json({
-          success: false,
-          message: 'Tên và email là bắt buộc'
-        });
-      }
-
-      // Kiểm tra email trùng
-      const emailExists = await NhanVienModel.checkEmailExists(email);
-      if (emailExists) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email đã tồn tại'
-        });
-      }
-
-      const newId = await NhanVienModel.create({
-        ma_chuc_vu,
-        ma_phong_ban,
-        ten_nhan_vien,
-        email,
-        sdt
-      });
-
-      const newNhanVien = await NhanVienModel.getById(newId);
-
-      res.status(201).json({
-        success: true,
-        message: 'Thêm nhân viên thành công',
-        data: newNhanVien
-      });
-    } catch (error) {
-      console.error('Error creating employee:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Lỗi khi thêm nhân viên',
-        error: error.message
-      });
-    }
+exports.create = async (req, res) => {
+  try {
+    const id = await NhanVien.create(req.body);
+    res.status(201).json({ message: 'Thêm thành công', id });
+  } catch {
+    res.status(500).json({ message: 'Lỗi thêm nhân viên' });
   }
+};
 
-  // Cập nhật nhân viên
-  async update(req, res) {
-    try {
-      const { id } = req.params;
-      const { ma_chuc_vu, ma_phong_ban, ten_nhan_vien, email, sdt } = req.body;
-
-      // Validate
-      if (!ten_nhan_vien || !email) {
-        return res.status(400).json({
-          success: false,
-          message: 'Tên và email là bắt buộc'
-        });
-      }
-
-      // Kiểm tra email trùng (trừ chính nó)
-      const emailExists = await NhanVienModel.checkEmailExists(email, id);
-      if (emailExists) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email đã tồn tại'
-        });
-      }
-
-      const affectedRows = await NhanVienModel.update(id, {
-        ma_chuc_vu,
-        ma_phong_ban,
-        ten_nhan_vien,
-        email,
-        sdt
-      });
-
-      if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Không tìm thấy nhân viên'
-        });
-      }
-
-      const updatedNhanVien = await NhanVienModel.getById(id);
-
-      res.json({
-        success: true,
-        message: 'Cập nhật nhân viên thành công',
-        data: updatedNhanVien
-      });
-    } catch (error) {
-      console.error('Error updating employee:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Lỗi khi cập nhật nhân viên',
-        error: error.message
-      });
-    }
+exports.update = async (req, res) => {
+  try {
+    const affected = await NhanVien.update(req.params.id, req.body);
+    if (!affected) return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
+    res.json({ message: 'Cập nhật thành công' });
+  } catch {
+    res.status(500).json({ message: 'Lỗi cập nhật nhân viên' });
   }
+};
 
-  // Xóa nhân viên
-  async delete(req, res) {
-    try {
-      const { id } = req.params;
-
-      const affectedRows = await NhanVienModel.delete(id);
-
-      if (affectedRows === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Không tìm thấy nhân viên'
-        });
-      }
-
-      res.json({
-        success: true,
-        message: 'Xóa nhân viên thành công'
-      });
-    } catch (error) {
-      console.error('Error deleting employee:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Lỗi khi xóa nhân viên',
-        error: error.message
-      });
-    }
+exports.delete = async (req, res) => {
+  try {
+    const affected = await NhanVien.delete(req.params.id);
+    if (!affected) return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
+    res.json({ message: 'Xóa thành công' });
+  } catch {
+    res.status(500).json({ message: 'Lỗi xóa nhân viên' });
   }
+};
 
-  // Lấy danh sách chức vụ
-  async getChucVu(req, res) {
-    try {
-      const chucVus = await NhanVienModel.getChucVu();
-      res.json({
-        success: true,
-        data: chucVus
-      });
-    } catch (error) {
-      console.error('Error getting positions:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Lỗi khi lấy danh sách chức vụ',
-        error: error.message
-      });
-    }
-  }
+// Lấy danh mục chức vụ
+exports.getChucVu = async (req, res) => {
+  const list = await ChucVu.getAll();
+  res.json(list);
+};
 
-  // Lấy danh sách phòng ban
-  async getPhongBan(req, res) {
-    try {
-      const phongBans = await NhanVienModel.getPhongBan();
-      res.json({
-        success: true,
-        data: phongBans
-      });
-    } catch (error) {
-      console.error('Error getting departments:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Lỗi khi lấy danh sách phòng ban',
-        error: error.message
-      });
-    }
-  }
-}
-
-module.exports = new NhanVienController();
+// Lấy danh mục phòng ban
+exports.getPhongBan = async (req, res) => {
+  const list = await PhongBan.getAll();
+  res.json(list);
+};
