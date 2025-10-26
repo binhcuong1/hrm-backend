@@ -1,7 +1,12 @@
 const express = require("express");
 const router = express.Router();
 
-router.use("/chucvu", require("./chucvuRoutes"));
 router.use("/bangluong", require("./bangluongRoutes"));
+router.use('/chucvu', require('./chucvuRoutes'));
+router.use('/khuon-mat', require('./khuonmatRoutes'));
+router.use('/nhan-vien', require('./nhanvienRoutes'));
+router.use('/auth', require('./authRoutes'));
+router.use('/calamviec', require('./calamviecRoutes'));
+router.use('/phongban', require('./phongbanRoutes'));
 
 module.exports = router;
