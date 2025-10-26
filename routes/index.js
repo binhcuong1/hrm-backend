@@ -1,10 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const chucvuRoutes = require("./chucvuRoutes");
-const bangluongRoutes = require("./bangluongRoutes");
-
-router.use("/chucvu", chucvuRoutes);
-router.use("/bangluong", bangluongRoutes);
+router.use("/chucvu", require("./chucvuRoutes"));
+router.use("/bangluong", require("./bangluongRoutes"));
 
 module.exports = router;
