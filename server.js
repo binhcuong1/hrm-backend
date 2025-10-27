@@ -7,7 +7,7 @@ const router = require('./routes/index');
 
 // Cấu hình CORS
 app.use(cors({
-    origin: 'http://127.0.0.1:5500',
+    origin: 'http://127.0.0.1:5500', 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type'],
     credentials: true
