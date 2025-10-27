@@ -11,10 +11,11 @@ exports.getAllChucVu = async (req, res) => {
 
 exports.createChucVu = async (req, res) => {
   try {
-    const { tenChucVu } = req.body;
-    const id = await ChucVu.create(tenChucVu);
-    res.status(201).json({ id, tenChucVu });
-  } catch {
+    const { ten_chuc_vu, he_so_luong } = req.body; // ✅ Thêm he_so_luong
+    const id = await ChucVu.create(ten_chuc_vu, he_so_luong);
+    res.status(201).json({ id, ten_chuc_vu, he_so_luong });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Lỗi thêm chức vụ' });
   }
 };
@@ -22,11 +23,12 @@ exports.createChucVu = async (req, res) => {
 exports.updateChucVu = async (req, res) => {
   try {
     const { id } = req.params;
-    const { tenChucVu } = req.body;
-    const affected = await ChucVu.update(id, tenChucVu);
+    const { ten_chuc_vu, he_so_luong } = req.body; // ✅ Thêm he_so_luong
+    const affected = await ChucVu.update(id, ten_chuc_vu, he_so_luong);
     if (!affected) return res.status(404).json({ message: 'Không tìm thấy chức vụ' });
     res.json({ message: 'Cập nhật thành công' });
-  } catch {
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Lỗi cập nhật chức vụ' });
   }
 };
