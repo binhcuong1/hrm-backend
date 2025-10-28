@@ -10,6 +10,7 @@ router.use('/calamviec', require('./calamviecRoutes'));
 router.use('/phongban', require('./phongbanRoutes'));
 router.use('/thuongphat', require('./thuongPhatRoutes'));
 router.use("/bangluong", require('./bangluongRoutes'));
-router.use('/otp', require('./otpRoutes')); // ✅ thêm dòng này
+router.use('/otp', require('./otpRoutes'));
+router.use("/chat", require("./chatRoutes"));
 
 module.exports = router;
