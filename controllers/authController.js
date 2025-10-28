@@ -1,4 +1,6 @@
 const pool = require("../config/db");
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 // ✅ Đăng nhập admin duy nhất
 exports.login = async (req, res) => {
@@ -29,6 +31,14 @@ exports.login = async (req, res) => {
 
         console.log(`✅ Admin ${admin.name} đăng nhập thành công`);
 
+        // ✅ Tạo JWT Token (hết hạn 1 giờ)
+        const token = jwt.sign(
+            { id: admin.id, email: admin.email },
+            process.env.JWT_SECRET || "supersecretkey",
+            { expiresIn: "1h" }
+        );
+
+        // ✅ Trả response kèm token
         return res.json({
             message: "Đăng nhập thành công",
             user: {
@@ -36,6 +46,7 @@ exports.login = async (req, res) => {
                 name: admin.name,
                 email: admin.email,
             },
+            accessToken: token,
         });
 
     } catch (err) {
