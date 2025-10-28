@@ -3,13 +3,13 @@ const db = require('../config/db');
 const table = 'thuong_phat';
 
 module.exports = {
-  // Tạo mới
+  // 🔹 Thêm mới
   async create(data) {
     const [r] = await db.query(`INSERT INTO ${table} SET ?`, [data]);
     return r.insertId;
   },
 
-  // Lấy tất cả (JOIN nhân viên để có ten_nhan_vien)
+  // 🔹 Lấy danh sách
   async getAll({ loai_tp, ma_nhan_vien, from, to } = {}) {
     const where = ['tp.da_xoa = 0'];
     const vals = [];
@@ -20,9 +20,7 @@ module.exports = {
     if (to) { where.push('tp.ngay <= ?'); vals.push(to); }
 
     const sql = `
-      SELECT
-        tp.*,
-        nv.ten_nhan_vien AS ten_nhan_vien
+      SELECT tp.*, nv.ten_nhan_vien AS ten_nhan_vien
       FROM ${table} tp
       LEFT JOIN nhan_vien nv ON tp.ma_nhan_vien = nv.ma_nhan_vien
       WHERE ${where.join(' AND ')}
@@ -32,12 +30,10 @@ module.exports = {
     return rows;
   },
 
-  // Lấy theo id (JOIN luôn)
+  // 🔹 Lấy theo ID
   async getById(id) {
     const sql = `
-      SELECT
-        tp.*,
-        nv.ten_nhan_vien AS ten_nhan_vien
+      SELECT tp.*, nv.ten_nhan_vien AS ten_nhan_vien
       FROM ${table} tp
       LEFT JOIN nhan_vien nv ON tp.ma_nhan_vien = nv.ma_nhan_vien
       WHERE tp.ma_thuong_phat = ? LIMIT 1
@@ -46,12 +42,12 @@ module.exports = {
     return rows[0] || null;
   },
 
-  // Cập nhật theo id
+  // 🔹 Cập nhật
   async update(id, data) {
     await db.query(`UPDATE ${table} SET ? WHERE ma_thuong_phat = ?`, [data, id]);
   },
 
-  // Xóa mềm
+  // 🔹 Xóa mềm
   async softDelete(id) {
     await db.query(`UPDATE ${table} SET da_xoa = 1 WHERE ma_thuong_phat = ?`, [id]);
   },
